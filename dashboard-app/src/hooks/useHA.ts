@@ -51,7 +51,12 @@ export function useHA() {
     callService(connRef.current, 'media_player', action, { entity_id: entityId })
   }, [])
 
-  return { entities, connected, toggle, setTemp, mediaControl }
+  const svcCall = useCallback((domain: string, service: string, data: object) => {
+    if (!connRef.current) return
+    callService(connRef.current, domain, service, data)
+  }, [])
+
+  return { entities, connected, toggle, setTemp, mediaControl, svcCall }
 }
 
 export type { HassEntities }

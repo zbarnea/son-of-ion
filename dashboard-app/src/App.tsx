@@ -7,6 +7,7 @@ import { WeatherCard } from './components/WeatherCard'
 import { MediaPlayerCard } from './components/MediaPlayerCard'
 import { EnergySection } from './components/EnergySection'
 import { StatCard } from './components/StatCard'
+import { CarPopup } from './components/CarPopup'
 import {
   Lightbulb, Tv, Speaker,
   Thermometer, BatteryCharging, Zap, Flame,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react'
 
 type View = 'home' | 'energy' | 'cars'
+type CarKey = 'enyaq' | 'id3' | null
 
 const ACTIVE_STATES = ['on','playing','idle','paused','open','heat','auto','heat_cool','cool','home','above_horizon','fan_only']
 const isOn = (state?: string) => ACTIVE_STATES.includes(state ?? '')
@@ -26,7 +28,8 @@ function fmt(val?: string, suffix = '') {
 
 export default function App() {
   const [view, setView] = useState<View>('home')
-  const { entities, connected, toggle, mediaControl } = useHA()
+  const [carPopup, setCarPopup] = useState<CarKey>(null)
+  const { entities, connected, toggle, mediaControl, svcCall } = useHA()
 
   const e   = (id: string) => entities[id]
   const st  = (id: string) => entities[id]?.state
@@ -42,8 +45,8 @@ export default function App() {
   const enyaqRange = fmt(st('sensor.skoda_enyaq_range'), ' mi')
   const enyaqMiles = fmt(st('sensor.skoda_enyaq_mileage'), ' mi')
   const id3Bat     = fmt(st('sensor.id3_id3_battery_level'), '%')
-  const id3Range   = fmt(st('sensor.id3_id3_electric_range'), ' mi')
-  const id3Miles   = fmt(st('sensor.id3_id3_odometer'), ' mi')
+  const id3Range   = fmt(st('sensor.id3_id3_battery_cruising_range'), ' mi')
+  const id3Miles   = fmt(st('sensor.id3_miles_since_purchase'), ' mi')
 
   // Energy (consumption kWh, no cost sensor found)
   const elecKwh = fmt(st('sensor.octopus_energy_electricity_19l3113509_1012733780725_current_accumulative_consumption'), ' kWh')
@@ -226,6 +229,7 @@ export default function App() {
             isCharging={isOn(st('binary_sensor.enyaq_charging_active'))}
             acState={st('climate.skoda_enyaq_air_conditioning')}
             onToggleAC={() => toggle('climate.skoda_enyaq_air_conditioning')}
+            onImageClick={() => setCarPopup('enyaq')}
           />
           <CarPanel
             name="Volkswagen ID.3"
@@ -234,9 +238,55 @@ export default function App() {
             isCharging={isOn(st('binary_sensor.id3_charging_active'))}
             acState={st('climate.id3_electric_climatisation')}
             onToggleAC={() => toggle('climate.id3_electric_climatisation')}
+            onImageClick={() => setCarPopup('id3')}
           />
         </div>
       )}
+
+      {/* ═══════════ CAR POPUPS ═══════════ */}
+      <CarPopup
+        isOpen={carPopup === 'enyaq'}
+        onClose={() => setCarPopup(null)}
+        name="Škoda Enyaq"
+        image="http://192.168.1.108:8123/api/image/serve/62f93ec9d3c7b32b5aefcdd1ecc6f08b/original"
+        entities={entities}
+        ids={{
+          battery:       'sensor.skoda_enyaq_battery_percentage',
+          range:         'sensor.skoda_enyaq_range',
+          mileage:       'sensor.skoda_enyaq_mileage',
+          chargingState: 'sensor.skoda_enyaq_charging_state',
+          chargingPower: 'sensor.skoda_enyaq_charging_power',
+          ac:            'climate.skoda_enyaq_air_conditioning',
+          seatHeating:   'switch.skoda_enyaq_right_seat_heating_with_ac',
+          smartCharge:   'switch.octopus_energy_00000000_0002_4000_8020_0000000e2acf_intelligent_smart_charge',
+          bumpCharge:    'switch.octopus_energy_00000000_0002_4000_8020_0000000e2acf_intelligent_bump_charge',
+          chargeTarget:  'number.octopus_energy_00000000_0002_4000_8020_0000000e2acf_intelligent_charge_target',
+          targetTime:    'select.octopus_energy_00000000_0002_4000_8020_0000000e2acf_intelligent_target_time',
+        }}
+        toggle={toggle}
+        svcCall={svcCall}
+      />
+      <CarPopup
+        isOpen={carPopup === 'id3'}
+        onClose={() => setCarPopup(null)}
+        name="Volkswagen ID.3"
+        image="http://192.168.1.108:8123/api/image/serve/090aa31129ebded9e73953e88960dd58/original"
+        entities={entities}
+        ids={{
+          battery:       'sensor.id3_id3_battery_level',
+          range:         'sensor.id3_id3_battery_cruising_range',
+          mileage:       'sensor.id3_miles_since_purchase',
+          chargingState: 'binary_sensor.id3_charging_active',
+          ac:            'climate.id3_electric_climatisation',
+          doorsLocked:   'binary_sensor.id3_id3_doors_locked',
+          smartCharge:   'switch.octopus_energy_00000000_0002_4000_8020_0000000e2592_intelligent_smart_charge',
+          bumpCharge:    'switch.octopus_energy_00000000_0002_4000_8020_0000000e2592_intelligent_bump_charge',
+          chargeTarget:  'number.octopus_energy_00000000_0002_4000_8020_0000000e2592_intelligent_charge_target',
+          targetTime:    'select.octopus_energy_00000000_0002_4000_8020_0000000e2592_intelligent_target_time',
+        }}
+        toggle={toggle}
+        svcCall={svcCall}
+      />
     </div>
   )
 }
@@ -267,16 +317,22 @@ interface CarPanelProps {
   name: string; image: string
   battery: string; range: string; mileage: string
   isCharging: boolean; acState?: string; onToggleAC: () => void
+  onImageClick: () => void
 }
 
-function CarPanel({ name, image, battery, range, mileage, isCharging, acState, onToggleAC }: CarPanelProps) {
+function CarPanel({ name, image, battery, range, mileage, isCharging, acState, onToggleAC, onImageClick }: CarPanelProps) {
   const batNum  = parseInt(battery)
   const batClr  = batNum > 60 ? 'text-emerald-400' : batNum > 30 ? 'text-orange-400' : 'text-red-400'
   const acOn    = ['cool','heat','heat_cool','fan_only','on'].includes(acState ?? '')
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative bg-navy-700 rounded-2xl overflow-hidden" style={{ aspectRatio: '16/9' }}>
+      <div
+        className="relative bg-navy-700 rounded-2xl overflow-hidden cursor-pointer hover:ring-1 hover:ring-white/20 transition-all"
+        style={{ aspectRatio: '16/9' }}
+        onClick={onImageClick}
+        title="Tap for controls"
+      >
         <img src={image} className="w-full h-full object-contain p-6" alt={name} />
         <div className="absolute inset-0 bg-gradient-to-t from-navy-900/90 via-transparent to-transparent" />
         <div className="absolute bottom-4 left-5">
