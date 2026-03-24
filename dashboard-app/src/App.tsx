@@ -224,7 +224,7 @@ export default function App() {
         <div className="flex-1 overflow-y-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4 content-start pb-24 md:pb-4">
           <CarPanel
             name="Škoda Enyaq"
-            image="http://192.168.1.108:8123/api/image/serve/62f93ec9d3c7b32b5aefcdd1ecc6f08b/original"
+            image="/api/image/serve/62f93ec9d3c7b32b5aefcdd1ecc6f08b/original"
             battery={enyaqBat} range={enyaqRange} mileage={enyaqMiles}
             isCharging={isOn(st('binary_sensor.enyaq_charging_active'))}
             acState={st('climate.skoda_enyaq_air_conditioning')}
@@ -233,7 +233,7 @@ export default function App() {
           />
           <CarPanel
             name="Volkswagen ID.3"
-            image="http://192.168.1.108:8123/api/image/serve/090aa31129ebded9e73953e88960dd58/original"
+            image="/api/image/serve/090aa31129ebded9e73953e88960dd58/original"
             battery={id3Bat} range={id3Range} mileage={id3Miles}
             isCharging={isOn(st('binary_sensor.id3_charging_active'))}
             acState={st('climate.id3_electric_climatisation')}
@@ -248,7 +248,7 @@ export default function App() {
         isOpen={carPopup === 'enyaq'}
         onClose={() => setCarPopup(null)}
         name="Škoda Enyaq"
-        image="http://192.168.1.108:8123/api/image/serve/62f93ec9d3c7b32b5aefcdd1ecc6f08b/original"
+        image="/api/image/serve/62f93ec9d3c7b32b5aefcdd1ecc6f08b/original"
         entities={entities}
         ids={{
           battery:       'sensor.skoda_enyaq_battery_percentage',
@@ -270,7 +270,7 @@ export default function App() {
         isOpen={carPopup === 'id3'}
         onClose={() => setCarPopup(null)}
         name="Volkswagen ID.3"
-        image="http://192.168.1.108:8123/api/image/serve/090aa31129ebded9e73953e88960dd58/original"
+        image="/api/image/serve/090aa31129ebded9e73953e88960dd58/original"
         entities={entities}
         ids={{
           battery:       'sensor.id3_id3_battery_level',

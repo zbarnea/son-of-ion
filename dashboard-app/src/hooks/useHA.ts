@@ -8,7 +8,8 @@ import {
   type Connection,
 } from 'home-assistant-js-websocket'
 
-const HA_URL   = 'http://192.168.1.108:8123'
+// Connect to HA via the nginx proxy on the same host — avoids mixed content on HTTPS
+const HA_URL   = window.location.origin
 const HA_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIyMjRiMmI1YmQ5NmQ0NTY3OWQyNDliZGZkYTljZTYwZCIsImlhdCI6MTc3MzU2NjU1MywiZXhwIjoyMDg4OTI2NTUzfQ.IBhJbgzQF-sSaUERsoeQ06EZAEOM3OBCyt_ezhncZHg'
 
 export function useHA() {
