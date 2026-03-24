@@ -24,7 +24,7 @@ const BAR_COLORS = ['#fb923c', '#f472b6', '#a78bfa', '#38bdf8', '#34d399', '#fac
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-navy-800 border border-white/10 rounded-lg px-3 py-2 text-xs text-white">
+    <div className="glass rounded-lg px-3 py-2 text-xs text-white">
       {label}: {payload[0].value} kWh
     </div>
   )
@@ -32,7 +32,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function EnergySection({ electricCost, gasCost, enyaqBattery, id3Battery, enyaqRange, id3Range }: Props) {
   return (
-    <div className="bg-navy-700 rounded-2xl p-5">
+    <div className="glass rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-white">
           Energy <span className="text-orange-400">Usage</span>
